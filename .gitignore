@@ -8,7 +8,7 @@ yarn-error.log*
 pnpm-debug.log*
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+pnpm-lock.yamled
 
 # ======================
 # Environment variables (IMPORTANT)
@@ -84,3 +84,5 @@ docker-compose.override.yml
 # ======================
 *.tgz
 *.zip
+
+backend/uploads
