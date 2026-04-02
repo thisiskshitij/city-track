@@ -18,14 +18,13 @@ const IssueSchema = new mongoose.Schema({
   category: {
     type: String,
     enum: [
-      "Road",
-      "Sanitation",
-      "Electricity",
-      "Water",
-      "Environment",
-      "Other"
+      "Road issues",
+      "Sanitation problems",
+      "Electricity issues",
+      "Water supply problems",
+      "Environmental issues"
     ],
-    default: "Other"
+    required: true
   },
 
   severity: {

@@ -1,25 +1,197 @@
-const Issue = require("../models/Issue");
 
-// CREATE
-// exports.createIssue = async (req, res) => {
-//   try {
-//     const newIssue = new Issue(req.body);
-//     const savedIssue = await newIssue.save();
-//     res.status(201).json(savedIssue);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+const Issue = require("../models/Issue");
+const classifyWithAI = require("../ai-engine/zeroShotClassifier");
+const classifyImage = require("../ai-engine/imageClassifier");
+
+// 🧠 Map Image Labels → Categories
+const mapImageToCategory = (label) => {
+  label = label.toLowerCase();
+
+  if (label.includes("road") || label.includes("street") || label.includes("hole")) {
+    return "Road issues";
+  }
+
+  if (label.includes("garbage") || label.includes("trash")) {
+    return "Sanitation problems";
+  }
+
+  if (label.includes("light")) {
+    return "Electricity issues";
+  }
+
+  if (label.includes("water")) {
+    return "Water supply problems";
+  }
+
+  return "Environmental issues";
+};
+
+
+// 🧠 CATEGORY LIST
+const categories = [
+  "Road issues",
+  "Sanitation problems",
+  "Electricity issues",
+  "Water supply problems",
+  "Environmental issues"
+];
+
+// 🧠 Convert category → score vector
+const getScoreVector = (predictedCategory) => {
+  const scores = {
+    "Road issues": 0,
+    "Sanitation problems": 0,
+    "Electricity issues": 0,
+    "Water supply problems": 0,
+    "Environmental issues": 0
+  };
+
+  if (scores.hasOwnProperty(predictedCategory)) {
+    scores[predictedCategory] = 1;
+  }
+
+  return scores;
+};
+
+// 🧠 Combine Text + Image
+const combinePredictions = (textCategory, imageCategory) => {
+  const textScores = getScoreVector(textCategory);
+  const imageScores = getScoreVector(imageCategory);
+
+  const finalScores = {};
+
+  for (let key in textScores) {
+    finalScores[key] =
+      0.6 * textScores[key] +
+      0.4 * imageScores[key];
+  }
+
+  let finalCategory = null;
+  let maxScore = -1;
+
+  for (let key in finalScores) {
+    if (finalScores[key] > maxScore) {
+      maxScore = finalScores[key];
+      finalCategory = key;
+    }
+  }
+
+  console.log("🧠 Combined Scores:", finalScores);
+  console.log("🏆 Final AI Decision:", finalCategory);
+
+  return finalCategory;
+};
+
+//new line
+
+const predictSeverity = (description, imageLabel) => {
+  let score = 0;
+  console.log("⚡ Severity function called");
+  const text = description.toLowerCase();
+
+  // 🔤 TEXT SIGNALS
+  if (text.includes("huge") || text.includes("big") || text.includes("danger")) {
+    score += 0.4;
+  }
+
+  if (text.includes("accident") || text.includes("risk") || text.includes("blocked")) {
+    score += 0.3;
+  }
+
+  if (text.includes("water leaking") || text.includes("overflow")) {
+    score += 0.2;
+  }
+
+  // 🖼️ IMAGE SIGNALS
+  if (imageLabel) {
+    const label = imageLabel.toLowerCase();
+
+    if (label.includes("garbage") || label.includes("trash")) {
+      score += 0.2;
+    }
+
+    if (label.includes("hole") || label.includes("damage")) {
+      score += 0.4;
+    }
+  }
+
+  // 🎯 NORMALIZE (max = 1)
+  if (score > 1) score = 1;
+
+  console.log("🔥 Severity Score:", score);
+
+  // 🏷️ MAP TO LEVEL
+  if (score < 0.34) return "Low";
+  if (score < 0.67) return "Medium";
+  return "High";
+};
 
 exports.createIssue = async (req, res) => {
   try {
+
+    console.log("createIssue hit");
 
     const image_url = req.file
       ? `http://localhost:5000/uploads/${req.file.filename}`
       : null;
 
+    // 🧠 TEXT AI
+    const textCategory = await classifyWithAI(req.body.description);
+    console.log("Text AI:", textCategory);
+
+    // 🖼️ IMAGE AI
+
+    let imagePrediction = null;
+    let imageCategory = null;
+
+    if (req.file) {
+      console.log("🖼️ Image received:", req.file.filename);
+
+      imagePrediction = await classifyImage(`uploads/${req.file.filename}`);
+
+      console.log("🧠 Raw Image Prediction:", imagePrediction);
+
+      imageCategory = mapImageToCategory(imagePrediction);
+
+      console.log("🧩 Mapped Image Category:", imageCategory);
+
+    } else {
+      console.log("🖼️ No image uploaded");
+    }
+
+    // 🧠 FINAL DECISION (Multimodal)
+
+
+    let finalCategory = textCategory;
+
+    if (imageCategory) {
+      finalCategory = combinePredictions(textCategory, imageCategory);
+    }
+    console.log("Final Category:", finalCategory);
+
+
+
+    // // 🧱 CREATE ISSUE
+    // const newIssue = new Issue({
+    //   title: req.body.title,
+    //   description: req.body.description,
+    // severity: req.body.severity,
+    //   category: finalCategory,
+    //   image_url
+    // });
+
+    const aiSeverity = predictSeverity(
+      req.body.description,
+      imagePrediction
+    );
+
+    console.log("🎯 Final Severity:", aiSeverity);
+
     const newIssue = new Issue({
-      ...req.body,
+      title: req.body.title,
+      description: req.body.description,
+      severity: aiSeverity, // ✅ AI decides
+      category: finalCategory,
       image_url
     });
 
@@ -31,7 +203,6 @@ exports.createIssue = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 // GET ALL
 exports.getIssues = async (req, res) => {
   try {
