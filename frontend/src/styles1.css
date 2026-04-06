@@ -41,23 +41,18 @@
 /* ─── RESET ──────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body, #root {
-  min-height: 100vh;
+body {
+  font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
-
-body { margin: 0; padding: 0; }
 
 /* ─── LAYOUT ─────────────────────────────────────────── */
 .ct-root {
   display: flex;
   min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
   transition: background var(--transition), color var(--transition);
 }
 
@@ -137,8 +132,15 @@ body { margin: 0; padding: 0; }
   text-align: left;
 }
 
-.ct-nav-btn:hover { background: rgba(255,255,255,0.06); color: white; }
-.ct-nav-btn.active { background: rgba(255,255,255,0.1); color: var(--sidebar-active); }
+.ct-nav-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: white;
+}
+
+.ct-nav-btn.active {
+  background: rgba(255,255,255,0.1);
+  color: var(--sidebar-active);
+}
 
 .ct-nav-icon {
   font-size: 13px;
@@ -198,7 +200,6 @@ body { margin: 0; padding: 0; }
   flex-direction: column;
   min-height: 100vh;
   overflow: hidden;
-  background: var(--bg);
 }
 
 /* ─── TOPBAR ─────────────────────────────────────────── */
@@ -206,7 +207,7 @@ body { margin: 0; padding: 0; }
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px 32px;
+  padding: 20px 32px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -300,84 +301,20 @@ body { margin: 0; padding: 0; }
 
 .ct-report-btn:active { transform: translateY(0); }
 
-/* ─── MAP SECTION ────────────────────────────────────── */
-.ct-map-section {
-  margin: 28px 32px 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-.ct-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px 16px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.ct-section-title {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-
-.ct-section-sub {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.ct-location-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: rgba(107,143,113,0.12);
-  color: #4a7250;
-  border: 1px solid rgba(107,143,113,0.25);
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: var(--font);
-}
-
-.ct-dark .ct-location-badge {
-  color: #7bbf6a;
-  background: rgba(107,143,113,0.15);
-  border-color: rgba(107,143,113,0.3);
-}
-
-.ct-map-wrap {
-  width: 100%;
-  height: 380px;
-  border-top: 1px solid var(--border);
-}
-
-/* Override leaflet z-index inside our layout */
-.ct-map {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  font-family: var(--font) !important;
-  background: var(--surface2);
-}
-
 /* ─── PAGE TITLE ─────────────────────────────────────── */
 .ct-page-title {
   display: flex;
   align-items: baseline;
   gap: 12px;
   padding: 28px 32px 16px;
+}
+
+.ct-page-title h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
 }
 
 .ct-issue-count {
@@ -389,7 +326,7 @@ body { margin: 0; padding: 0; }
 /* ─── GRID ───────────────────────────────────────────── */
 .ct-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 18px;
   padding: 0 32px 40px;
   align-items: start;
@@ -475,7 +412,7 @@ body { margin: 0; padding: 0; }
   justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
-  padding-top: 8px;
+  padding-top: 4px;
   border-top: 1px solid var(--border);
   margin-top: 4px;
 }
@@ -573,7 +510,7 @@ body { margin: 0; padding: 0; }
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 100;
   padding: 20px;
 }
 
@@ -662,6 +599,7 @@ body { margin: 0; padding: 0; }
 
 .ct-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
+/* File input */
 .ct-file-label {
   display: flex;
   align-items: center;
@@ -698,6 +636,7 @@ body { margin: 0; padding: 0; }
   white-space: nowrap;
 }
 
+/* Submit */
 .ct-submit {
   width: 100%;
   padding: 13px;
@@ -734,7 +673,6 @@ body { margin: 0; padding: 0; }
   .ct-grid { grid-template-columns: 1fr; padding: 0 16px 32px; }
   .ct-topbar { padding: 14px 16px; }
   .ct-page-title { padding: 20px 16px 12px; }
-  .ct-map-section { margin: 16px 16px 0; }
   .ct-modal { padding: 24px; }
   .ct-field-row { grid-template-columns: 1fr; }
 }

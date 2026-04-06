@@ -33,9 +33,16 @@ const IssueSchema = new mongoose.Schema({
     default: "Low"
   },
 
+  // location: {
+  //   latitude: Number,
+  //   longitude: Number
+  // },
+
+  // new lines for area data
   location: {
-    latitude: Number,
-    longitude: Number
+    lat: Number,
+    lng: Number,
+    areaName: String
   },
 
   upvotes: {

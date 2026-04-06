@@ -1,410 +1,9 @@
 import "./styles.css";
-// import { FaThumbsUp, FaMoon, FaSun } from "react-icons/fa";
-// import { motion } from "framer-motion";
-
-// import { useEffect, useState } from "react";
-// import axios from "axios";
-
-// function App() {
-//   const [issues, setIssues] = useState([]);
-
-// const [formData, setFormData] = useState({
-//   title: "",
-//   description: "",
-//   category: "Road",
-//   severity: "Low",
-//   image: null
-// });
-// const [search, setSearch] = useState(""); 
-//   useEffect(() => {
-//     fetchIssues();
-//   }, [search]);
-
-//   const fetchIssues = () => {
-//   let url = "http://localhost:5000/issues";
-
-//   if (search) {
-//     url += `?search=${search}`;
-//   }
-
-//   axios.get(url)
-//     .then(res => setIssues(res.data))
-//     .catch(err => console.log(err));
-// };
-
-//   const handleChange = (e) => {
-//     setFormData({
-//       ...formData,
-//       [e.target.name]: e.target.value
-//     });
-//   };
-
-//   // const handleSubmit = (e) => {
-//   //   e.preventDefault();
-
-//   //   axios.post("http://localhost:5000/issues", formData)
-//   //     .then(() => {
-//   //       fetchIssues(); // refresh list
-//   //       setFormData({ title: "", description: "" });
-//   //     })
-//   //     .catch(err => console.log(err));
-//   // };
-
-// // const handleSubmit = (e) => {
-// //   e.preventDefault();
-
-// //   const data = new FormData();
-// //   data.append("title", formData.title);
-// //   data.append("description", formData.description);
-// //   data.append("category", formData.category);
-// //   data.append("severity", formData.severity);
-// //   data.append("image", formData.image);
-
-// //   axios.post("http://localhost:5000/issues", data)
-// //     .then(() => {
-// //       fetchIssues();
-// //     })
-// //     .catch(err => console.log(err));
-// // };
-
-// const handleSubmit = (e) => {
-//   e.preventDefault();
-
-//   const data = new FormData();
-//   data.append("title", formData.title);
-//   data.append("description", formData.description);
-//   data.append("category", formData.category);
-//   data.append("severity", formData.severity);
-//   data.append("image", formData.image);
-
-//   axios.post("http://localhost:5000/issues", data, {
-//     headers: {
-//       "Content-Type": "multipart/form-data"
-//     }
-//   })
-//     .then(() => {
-//       fetchIssues();
-//     })
-//     .catch(err => console.log(err));
-// };
-
-//   const handleUpvote = (id) => {
-//     axios.patch(`http://localhost:5000/issues/${id}/upvote`)
-//       .then(() => fetchIssues())
-//       .catch(err => console.log(err));
-//   };
-
-//   const [filter, setFilter] = useState("");
-
-// const updateStatus = (id, status) => {
-//   axios.patch(`http://localhost:5000/issues/${id}/status`, { status })
-//     .then(() => fetchIssues())
-//     .catch(err => console.log(err));
-// };
-
-// const [darkMode, setDarkMode] = useState(false);
-// //   <div className="app">
-// //     <h1>CityTrack 🚀</h1>
-
-// //     <form onSubmit={handleSubmit}>
-// //       <input type="text" name="title" placeholder="Title"
-// //         value={formData.title} onChange={handleChange} />
-
-// //       <textarea name="description" placeholder="Description"
-// //         value={formData.description} onChange={handleChange} />
-
-// //       <select name="category" value={formData.category} onChange={handleChange}>
-// //         <option value="Road">Road</option>
-// //         <option value="Sanitation">Sanitation</option>
-// //         <option value="Electricity">Electricity</option>
-// //         <option value="Water">Water</option>
-// //         <option value="Environment">Environment</option>
-// //       </select>
-
-// //       <select name="severity" value={formData.severity} onChange={handleChange}>
-// //         <option value="Low">Low</option>
-// //         <option value="Medium">Medium</option>
-// //         <option value="High">High</option>
-// //       </select>
-
-// //       <input type="file"
-// //         onChange={(e) =>
-// //           setFormData({ ...formData, image: e.target.files[0] })
-// //         }
-// //       />
-
-// //       <button type="submit">Submit Issue</button>
-// //     </form>
-
-// //     <input
-// //       className="search"
-// //       type="text"
-// //       placeholder="Search issues..."
-// //       value={search}
-// //       onChange={(e) => setSearch(e.target.value)}
-// //     />
-
-// //     {issues
-// //       .filter(issue => !filter || issue.category === filter)
-// //       .map(issue => (
-// //         <div key={issue._id} className="issue-card">
-// //           <h3>{issue.title}</h3>
-// //           <p>{issue.description}</p>
-
-// //           <div>
-// //             <span className="tag">{issue.category}</span>
-// //             <span className={`tag ${issue.severity.toLowerCase()}`}>
-// //               {issue.severity}
-// //             </span>
-// //           </div>
-
-// //           <p>Status: {issue.status}</p>
-
-// //           {issue.image_url && (
-// //             <img src={issue.image_url} alt="issue" />
-// //           )}
-
-// //           <p>👍 {issue.upvotes}</p>
-
-// //           <div className="actions">
-// //             <button onClick={() => handleUpvote(issue._id)}>Upvote</button>
-
-// //             <button className="secondary"
-// //               onClick={() => updateStatus(issue._id, "In Progress")}>
-// //               In Progress
-// //             </button>
-
-// //             <button className="secondary"
-// //               onClick={() => updateStatus(issue._id, "Resolved")}>
-// //               Resolved
-// //             </button>
-// //           </div>
-// //         </div>
-// //       ))}
-// //   </div>
-// // );
-
-
-// // return (
-// //   <div className={darkMode ? "dark container" : "container"}>
-
-// //     {/* SIDEBAR */}
-// //     <div className="sidebar">
-// //       <h2>CityTrack</h2>
-
-// //       <button onClick={() => setFilter("")}>All Issues</button>
-// //       <button onClick={() => setFilter("Road")}>Road</button>
-// //       <button onClick={() => setFilter("Water")}>Water</button>
-// //       <button onClick={() => setFilter("Electricity")}>Electricity</button>
-// //       <button onClick={() => setFilter("Sanitation")}>Sanitation</button>
-// //     </div>
-
-// //     {/* MAIN */}
-// //     <div className="main">
-
-// //       {/* TOPBAR */}
-// //       <div className="topbar">
-// //         <input
-// //           type="text"
-// //           placeholder="Search issues..."
-// //           value={search}
-// //           onChange={(e) => setSearch(e.target.value)}
-// //         />
-
-// //         <div className="toggle" onClick={() => setDarkMode(!darkMode)}>
-// //           {darkMode ? <FaSun /> : <FaMoon />}
-// //         </div>
-// //       </div>
-
-// //       {/* FORM */}
-// //       <form onSubmit={handleSubmit}>
-// //         <input name="title" placeholder="Title"
-// //           value={formData.title} onChange={handleChange} />
-
-// //         <textarea name="description" placeholder="Description"
-// //           value={formData.description} onChange={handleChange} />
-
-// //         <select name="category" value={formData.category} onChange={handleChange}>
-// //           <option value="Road">Road</option>
-// //           <option value="Sanitation">Sanitation</option>
-// //           <option value="Electricity">Electricity</option>
-// //           <option value="Water">Water</option>
-// //           <option value="Environment">Environment</option>
-// //         </select>
-
-// //         <select name="severity" value={formData.severity} onChange={handleChange}>
-// //           <option value="Low">Low</option>
-// //           <option value="Medium">Medium</option>
-// //           <option value="High">High</option>
-// //         </select>
-
-// //         <input type="file"
-// //           onChange={(e) =>
-// //             setFormData({ ...formData, image: e.target.files[0] })
-// //           }
-// //         />
-
-// //         <button type="submit">Submit Issue</button>
-// //       </form>
-
-// //       {/* ISSUES */}
-// //       {issues
-// //         .filter(issue => !filter || issue.category === filter)
-// //         .map(issue => (
-
-// //           <motion.div
-// //             key={issue._id}
-// //             className="issue-card"
-// //             initial={{ opacity: 0, y: 20 }}
-// //             animate={{ opacity: 1, y: 0 }}
-// //           >
-// //             <h3>{issue.title}</h3>
-// //             <p>{issue.description}</p>
-
-// //             <div>
-// //               <span className="tag">{issue.category}</span>
-// //               <span className={`tag ${issue.severity.toLowerCase()}`}>
-// //                 {issue.severity}
-// //               </span>
-// //             </div>
-
-// //             <p>Status: {issue.status}</p>
-
-// //             {issue.image_url && (
-// //               <img src={issue.image_url} alt="issue" width="100%" />
-// //             )}
-
-// //             <p>👍 {issue.upvotes}</p>
-
-// //             <div style={{ display: "flex", gap: "10px" }}>
-// //               <button onClick={() => handleUpvote(issue._id)}>
-// //                 <FaThumbsUp /> Upvote
-// //               </button>
-
-// //               <button className="secondary"
-// //                 onClick={() => updateStatus(issue._id, "In Progress")}>
-// //                 In Progress
-// //               </button>
-
-// //               <button className="secondary"
-// //                 onClick={() => updateStatus(issue._id, "Resolved")}>
-// //                 Resolved
-// //               </button>
-// //             </div>
-// //           </motion.div>
-// //         ))}
-// //     </div>
-// //   </div>
-// // );
-// // }
-//   return (
-//     <div>
-//       <h1>CityTrack 🚀</h1>
-
-//       {/* FORM */}
-
-//       <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
-//         <input
-//           type="text"
-//           name="title"
-//           placeholder="Title"
-//           value={formData.title}
-//           onChange={handleChange}
-//         />
-//         <br />
-
-//         <textarea
-//           name="description"
-//           placeholder="Description"
-//           value={formData.description}
-//           onChange={handleChange}
-//         />
-//         <br />
-//         <select name="category" value={formData.category} onChange={handleChange}>
-//           <option value="Road">Road</option>
-//           <option value="Sanitation">Sanitation</option>
-//           <option value="Electricity">Electricity</option>
-//           <option value="Water">Water</option>
-//           <option value="Environment">Environment</option>
-//         </select>
-
-//         <br />
-
-//         <select name="severity" value={formData.severity} onChange={handleChange}>
-//           <option value="Low">Low</option>
-//           <option value="Medium">Medium</option>
-//           <option value="High">High</option>
-//         </select>
-//         <button type="submit">Submit Issue</button>
-
-//         <input
-//   type="file"
-//   onChange={(e) =>
-//     setFormData({ ...formData, image: e.target.files[0] })
-//   }
-// />
-//       </form>
-
-// <input
-//   type="text"
-//   placeholder="Search issues..."
-//   value={search}
-//   onChange={(e) => setSearch(e.target.value)}
-//   style={{ marginBottom: "20px", padding: "5px", width: "200px" }}
-// />
-
-
-//       {/* ISSUES */}
-      
-//       {issues
-//   .filter(issue => !filter || issue.category === filter)
-//   .map(issue => (
-//         <div key={issue._id} style={{
-//   border: "1px solid #ddd",
-//   borderRadius: "10px",
-//   padding: "15px",
-//   margin: "10px",
-//   background: "#f9f9f9"
-// }}>
-//   <h3>{issue.title}</h3>
-//   <p>{issue.description}</p>
-
-//   <p><b>Category:</b> {issue.category}</p>
-//   <p><b>Severity:</b> {issue.severity}</p>
-//   <p><b>Status:</b> {issue.status}</p>
-//   {issue.image_url && (
-//   <img src={issue.image_url} alt="issue" width="200" />
-// )}
-
-//   <p>👍 {issue.upvotes}</p>
-
-//   <button onClick={() => handleUpvote(issue._id)}>
-//     Upvote
-//   </button>
-
-//   <button onClick={() => updateStatus(issue._id, "In Progress")}>
-//   In Progress
-// </button>
-
-// <button onClick={() => updateStatus(issue._id, "Resolved")}>
-//   Resolved
-// </button>
-// </div>
-//       ))}
-
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
-
-import "./styles.css";
 import { FaThumbsUp, FaMoon, FaSun, FaMapMarkerAlt, FaBolt, FaTint, FaTrash, FaRoad, FaLeaf, FaSearch, FaPlus, FaTimes } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import axios from "axios";
+
 
 const categoryIcons = {
   Road: <FaRoad />,
@@ -434,20 +33,38 @@ const statusConfig = {
   Resolved: { color: "#6b8f71", label: "Resolved" },
 };
 
+const delhiAreas = [
+  { name: "Connaught Place", lat: 28.6315, lng: 77.2167 },
+  { name: "Karol Bagh", lat: 28.6519, lng: 77.1909 },
+  { name: "Saket", lat: 28.5245, lng: 77.2066 },
+  { name: "Dwarka", lat: 28.5921, lng: 77.0460 },
+  { name: "Rohini", lat: 28.7041, lng: 77.1025 },
+  { name: "Lajpat Nagar", lat: 28.5677, lng: 77.2436 },
+  { name: "Janakpuri", lat: 28.6219, lng: 77.0878 },
+  { name: "Vasant Kunj", lat: 28.5244, lng: 77.1588 },
+  { name: "Chandni Chowk", lat: 28.6506, lng: 77.2303 },
+  { name: "Mayur Vihar", lat: 28.6139, lng: 77.2960 }
+];
+
 function App() {
+
   const [issues, setIssues] = useState([]);
+  const [duplicateIssue, setDuplicateIssue] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     category: "Road",
     severity: "Low",
     image: null,
+    // new line area
+    area: null
   });
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [fileName, setFileName] = useState("");
+
 
   useEffect(() => {
     fetchIssues();
@@ -465,22 +82,68 @@ function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   const data = new FormData();
+  //   data.append("title", formData.title);
+  //   data.append("description", formData.description);
+  //   data.append("category", formData.category);
+  //   data.append("severity", formData.severity);
+  //   data.append("image", formData.image);
+  //   axios.post("http://localhost:5000/issues", data, {
+  //     headers: { "Content-Type": "multipart/form-data" },
+  //   }).then(() => {
+  //     fetchIssues();
+  //     setShowForm(false);
+  //     setFileName("");
+  //     setFormData({ title: "", description: "", category: "Road", severity: "Low", image: null });
+  //   }).catch(err => console.log(err));
+  // };
+
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const data = new FormData();
     data.append("title", formData.title);
     data.append("description", formData.description);
     data.append("category", formData.category);
     data.append("severity", formData.severity);
     data.append("image", formData.image);
+    //below 3 lines new for area data
+    data.append("lat", formData.area?.lat);
+    data.append("lng", formData.area?.lng);
+    data.append("areaName", formData.area?.name);
+
     axios.post("http://localhost:5000/issues", data, {
       headers: { "Content-Type": "multipart/form-data" },
-    }).then(() => {
-      fetchIssues();
-      setShowForm(false);
-      setFileName("");
-      setFormData({ title: "", description: "", category: "Road", severity: "Low", image: null });
-    }).catch(err => console.log(err));
+    })
+      .then((res) => {
+
+        // 🚨 DUPLICATE DETECTED
+        if (res.data.message === "Similar issue already exists") {
+
+          alert("⚠️ Similar issue already exists. Please upvote it!");
+
+          setDuplicateIssue(res.data.existingIssue); // store it
+
+          return; // stop further execution
+        }
+
+        // ✅ NORMAL FLOW
+        fetchIssues();
+        setShowForm(false);
+        setFileName("");
+        setFormData({
+          title: "",
+          description: "",
+          category: "Road",
+          severity: "Low",
+          image: null
+        });
+
+      })
+      .catch(err => console.log(err));
   };
 
   const handleUpvote = (id) => {
@@ -619,6 +282,8 @@ function App() {
 
                 <h3 className="ct-card-title">{issue.title}</h3>
                 <p className="ct-card-desc">{issue.description}</p>
+                {/* new line for area data */}
+                <p><b>Area:</b> {issue.location?.areaName}</p>
 
                 {issue.image_url && (
                   <div className="ct-card-img-wrap">
@@ -749,6 +414,25 @@ function App() {
                     <span className="ct-file-btn">📎 Choose File</span>
                     <span className="ct-file-name">{fileName || "No file chosen"}</span>
                   </label>
+                  {/* new line till select */}
+                  <select
+                    onChange={(e) => {
+                      const selected = delhiAreas.find(a => a.name === e.target.value);
+                      setFormData({
+                        ...formData,
+                        area: selected
+                      });
+                    }}
+                  >
+                    <option value="">Select Area</option>
+                    {delhiAreas.map(area => (
+                      <option key={area.name} value={area.name}>
+                        {area.name}
+                      </option>
+                    ))}
+                  </select>
+
+
                 </div>
 
                 <button type="submit" className="ct-submit">Submit Report</button>

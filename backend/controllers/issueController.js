@@ -3,7 +3,39 @@ const Issue = require("../models/Issue");
 const classifyWithAI = require("../ai-engine/zeroShotClassifier");
 const classifyImage = require("../ai-engine/imageClassifier");
 
+const stringSimilarity = require("string-similarity");
+
+
+const checkDuplicate = async (newDescription) => {
+  const issues = await Issue.find();
+
+  let bestMatch = null;
+  let highestScore = 0;
+
+  for (let issue of issues) {
+    const similarity = stringSimilarity.compareTwoStrings(
+      newDescription.toLowerCase(),
+      issue.description.toLowerCase()
+    );
+
+    if (similarity > highestScore) {
+      highestScore = similarity;
+      bestMatch = issue;
+    }
+  }
+
+  console.log("🔍 Best similarity score:", highestScore);
+
+  if (highestScore > 0.7) {
+    console.log("⚠️ Duplicate detected");
+    return bestMatch;
+  }
+
+  return null;
+};
+
 // 🧠 Map Image Labels → Categories
+
 const mapImageToCategory = (label) => {
   label = label.toLowerCase();
 
@@ -25,6 +57,8 @@ const mapImageToCategory = (label) => {
 
   return "Environmental issues";
 };
+
+//new line for area data
 
 
 // 🧠 CATEGORY LIST
@@ -126,10 +160,35 @@ const predictSeverity = (description, imageLabel) => {
   return "High";
 };
 
+// const duplicate = await checkDuplicate(req.body.description);
+
+// if (duplicate) {
+//   return res.status(200).json({
+//     message: "Similar issue already exists",
+//     existingIssue: duplicate
+//   });
+// }
+
 exports.createIssue = async (req, res) => {
+
+  const location = {
+  lat: req.body.lat,
+  lng: req.body.lng,
+  areaName: req.body.areaName
+};
+
   try {
 
     console.log("createIssue hit");
+
+    const duplicate = await checkDuplicate(req.body.description);
+
+    if (duplicate) {
+      return res.status(200).json({
+        message: "Similar issue already exists",
+        existingIssue: duplicate
+      });
+    }
 
     const image_url = req.file
       ? `http://localhost:5000/uploads/${req.file.filename}`
@@ -192,7 +251,8 @@ exports.createIssue = async (req, res) => {
       description: req.body.description,
       severity: aiSeverity, // ✅ AI decides
       category: finalCategory,
-      image_url
+      image_url,
+      location
     });
 
     const savedIssue = await newIssue.save();
