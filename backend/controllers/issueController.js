@@ -2,33 +2,26 @@
 const Issue = require("../models/Issue");
 const classifyWithAI = require("../ai-engine/zeroShotClassifier");
 const classifyImage = require("../ai-engine/imageClassifier");
-
 const stringSimilarity = require("string-similarity");
 
+const checkDuplicate = async (description, areaName) => {
 
-const checkDuplicate = async (newDescription) => {
   const issues = await Issue.find();
 
-  let bestMatch = null;
-  let highestScore = 0;
-
   for (let issue of issues) {
-    const similarity = stringSimilarity.compareTwoStrings(
-      newDescription.toLowerCase(),
-      issue.description.toLowerCase()
-    );
 
-    if (similarity > highestScore) {
-      highestScore = similarity;
-      bestMatch = issue;
+    // ✅ SAME AREA CHECK
+    if (issue.location?.areaName !== areaName) {
+      continue; // skip different areas
     }
-  }
 
-  console.log("🔍 Best similarity score:", highestScore);
+    // 🔍 SIMPLE TEXT MATCH (you can improve later)
+    const existingDesc = issue.description.toLowerCase();
+    const newDesc = description.toLowerCase();
 
-  if (highestScore > 0.7) {
-    console.log("⚠️ Duplicate detected");
-    return bestMatch;
+    if (existingDesc.includes(newDesc) || newDesc.includes(existingDesc)) {
+      return issue;
+    }
   }
 
   return null;
@@ -160,28 +153,24 @@ const predictSeverity = (description, imageLabel) => {
   return "High";
 };
 
-// const duplicate = await checkDuplicate(req.body.description);
-
-// if (duplicate) {
-//   return res.status(200).json({
-//     message: "Similar issue already exists",
-//     existingIssue: duplicate
-//   });
-// }
 
 exports.createIssue = async (req, res) => {
 
-  const location = {
-  lat: req.body.lat,
-  lng: req.body.lng,
-  areaName: req.body.areaName
-};
+ 
 
   try {
-
+ const location = {
+    lat: req.body.lat,
+    lng: req.body.lng,
+    areaName: req.body.areaName || "Unknown Area"
+  };
     console.log("createIssue hit");
 
-    const duplicate = await checkDuplicate(req.body.description);
+    // const duplicate = await checkDuplicate(req.body.description);
+    const duplicate = await checkDuplicate(
+  req.body.description,
+  req.body.areaName // ✅ NEW
+);
 
     if (duplicate) {
       return res.status(200).json({
@@ -218,8 +207,6 @@ exports.createIssue = async (req, res) => {
       console.log("🖼️ No image uploaded");
     }
 
-    // 🧠 FINAL DECISION (Multimodal)
-
 
     let finalCategory = textCategory;
 
@@ -229,15 +216,6 @@ exports.createIssue = async (req, res) => {
     console.log("Final Category:", finalCategory);
 
 
-
-    // // 🧱 CREATE ISSUE
-    // const newIssue = new Issue({
-    //   title: req.body.title,
-    //   description: req.body.description,
-    // severity: req.body.severity,
-    //   category: finalCategory,
-    //   image_url
-    // });
 
     const aiSeverity = predictSeverity(
       req.body.description,
@@ -342,17 +320,13 @@ exports.getIssueById = async (req, res) => {
   }
 };
 
+
+
 exports.deleteIssue = async (req, res) => {
   try {
-    const issue = await Issue.findByIdAndDelete(req.params.id);
-
-    if (!issue) {
-      return res.status(404).json({ message: "Issue not found" });
-    }
-
-    res.status(200).json({ message: "Issue deleted successfully" });
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    await Issue.findByIdAndDelete(req.params.id);
+    res.json({ message: "Issue deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

@@ -85,4 +85,3 @@ docker-compose.override.yml
 *.tgz
 *.zip
 
-backend/uploads
