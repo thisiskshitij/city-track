@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 
-// ✅ VERIFY TOKEN (for logged-in users)
 exports.verifyToken = (req, res, next) => {
   try {
     const token = req.headers.authorization;
@@ -9,7 +8,6 @@ exports.verifyToken = (req, res, next) => {
       return res.status(401).json({ message: "No token provided" });
     }
 
-    // format: "Bearer TOKEN"
     const actualToken = token.split(" ")[1];
 
     const decoded = jwt.verify(actualToken, "secretkey");
@@ -23,7 +21,7 @@ exports.verifyToken = (req, res, next) => {
   }
 };
 
-// ✅ ADMIN ONLY
+//Admin only
 exports.isAdmin = (req, res, next) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access denied (Admin only)" });

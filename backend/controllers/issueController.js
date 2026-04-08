@@ -10,12 +10,12 @@ const checkDuplicate = async (description, areaName) => {
 
   for (let issue of issues) {
 
-    // ✅ SAME AREA CHECK
+    //  SAME AREA CHECK
     if (issue.location?.areaName !== areaName) {
       continue; // skip different areas
     }
 
-    // 🔍 SIMPLE TEXT MATCH (you can improve later)
+    //  SIMPLE TEXT MATCH (you can improve later)
     const existingDesc = issue.description.toLowerCase();
     const newDesc = description.toLowerCase();
 
@@ -27,50 +27,79 @@ const checkDuplicate = async (description, areaName) => {
   return null;
 };
 
-// 🧠 Map Image Labels → Categories
+//  Map Image Labels → Categories
+
+// const mapImageToCategory = (label) => {
+//   label = label.toLowerCase();
+
+//   if (label.includes("road") || label.includes("street") || label.includes("hole")) {
+//     return "Road issues";
+//   }
+
+//   if (label.includes("garbage") || label.includes("trash")) {
+//     return "Sanitation problems";
+//   }
+
+//   if (label.includes("light")) {
+//     return "Electricity issues";
+//   }
+
+//   if (label.includes("water")) {
+//     return "Water supply problems";
+//   }
+
+//   return "Environmental issues";
+// };
 
 const mapImageToCategory = (label) => {
   label = label.toLowerCase();
 
   if (label.includes("road") || label.includes("street") || label.includes("hole")) {
-    return "Road issues";
+    return "Road";
   }
 
   if (label.includes("garbage") || label.includes("trash")) {
-    return "Sanitation problems";
+    return "Sanitation";
   }
 
   if (label.includes("light")) {
-    return "Electricity issues";
+    return "Electricity";
   }
 
   if (label.includes("water")) {
-    return "Water supply problems";
+    return "Water";
   }
 
-  return "Environmental issues";
+  return "Environment";
 };
 
 //new line for area data
 
 
-// 🧠 CATEGORY LIST
+// // CATEGORY LIST
+// const categories = [
+//   "Road issues",
+//   "Sanitation problems",
+//   "Electricity issues",
+//   "Water supply problems",
+//   "Environmental issues"
+// ];
+//  CATEGORY LIST
 const categories = [
-  "Road issues",
-  "Sanitation problems",
-  "Electricity issues",
-  "Water supply problems",
-  "Environmental issues"
+  "Road",
+  "Sanitation",
+  "Electricity",
+  "Water",
+  "Environment"
 ];
 
-// 🧠 Convert category → score vector
 const getScoreVector = (predictedCategory) => {
   const scores = {
-    "Road issues": 0,
-    "Sanitation problems": 0,
-    "Electricity issues": 0,
-    "Water supply problems": 0,
-    "Environmental issues": 0
+    "Road": 0,
+    "Sanitation": 0,
+    "Electricity": 0,
+    "Water": 0,
+    "Environment": 0
   };
 
   if (scores.hasOwnProperty(predictedCategory)) {
@@ -80,7 +109,7 @@ const getScoreVector = (predictedCategory) => {
   return scores;
 };
 
-// 🧠 Combine Text + Image
+//  Combine Text + Image
 const combinePredictions = (textCategory, imageCategory) => {
   const textScores = getScoreVector(textCategory);
   const imageScores = getScoreVector(imageCategory);
@@ -103,8 +132,8 @@ const combinePredictions = (textCategory, imageCategory) => {
     }
   }
 
-  console.log("🧠 Combined Scores:", finalScores);
-  console.log("🏆 Final AI Decision:", finalCategory);
+  console.log(" Combined Scores:", finalScores);
+  console.log(" Final AI Decision:", finalCategory);
 
   return finalCategory;
 };
@@ -113,10 +142,10 @@ const combinePredictions = (textCategory, imageCategory) => {
 
 const predictSeverity = (description, imageLabel) => {
   let score = 0;
-  console.log("⚡ Severity function called");
+  console.log("Severity function called");
   const text = description.toLowerCase();
 
-  // 🔤 TEXT SIGNALS
+  //  TEXT SIGNALS
   if (text.includes("huge") || text.includes("big") || text.includes("danger")) {
     score += 0.4;
   }
@@ -129,7 +158,7 @@ const predictSeverity = (description, imageLabel) => {
     score += 0.2;
   }
 
-  // 🖼️ IMAGE SIGNALS
+  // IMAGE SIGNALS
   if (imageLabel) {
     const label = imageLabel.toLowerCase();
 
@@ -142,12 +171,12 @@ const predictSeverity = (description, imageLabel) => {
     }
   }
 
-  // 🎯 NORMALIZE (max = 1)
+  //  NORMALIZE (max = 1)
   if (score > 1) score = 1;
 
   console.log("🔥 Severity Score:", score);
 
-  // 🏷️ MAP TO LEVEL
+  //  MAP TO LEVEL
   if (score < 0.34) return "Low";
   if (score < 0.67) return "Medium";
   return "High";
@@ -156,21 +185,21 @@ const predictSeverity = (description, imageLabel) => {
 
 exports.createIssue = async (req, res) => {
 
- 
+
 
   try {
- const location = {
-    lat: req.body.lat,
-    lng: req.body.lng,
-    areaName: req.body.areaName || "Unknown Area"
-  };
+    const location = {
+      lat: req.body.lat,
+      lng: req.body.lng,
+      areaName: req.body.areaName || "Unknown Area"
+    };
     console.log("createIssue hit");
 
     // const duplicate = await checkDuplicate(req.body.description);
     const duplicate = await checkDuplicate(
-  req.body.description,
-  req.body.areaName // ✅ NEW
-);
+      req.body.description,
+      req.body.areaName //  NEW
+    );
 
     if (duplicate) {
       return res.status(200).json({
@@ -183,28 +212,28 @@ exports.createIssue = async (req, res) => {
       ? `http://localhost:5000/uploads/${req.file.filename}`
       : null;
 
-    // 🧠 TEXT AI
+    //  TEXT AI
     const textCategory = await classifyWithAI(req.body.description);
     console.log("Text AI:", textCategory);
 
-    // 🖼️ IMAGE AI
+    //  IMAGE AI
 
     let imagePrediction = null;
     let imageCategory = null;
 
     if (req.file) {
-      console.log("🖼️ Image received:", req.file.filename);
+      console.log(" Image received:", req.file.filename);
 
       imagePrediction = await classifyImage(`uploads/${req.file.filename}`);
 
-      console.log("🧠 Raw Image Prediction:", imagePrediction);
+      console.log(" Raw Image Prediction:", imagePrediction);
 
       imageCategory = mapImageToCategory(imagePrediction);
 
-      console.log("🧩 Mapped Image Category:", imageCategory);
+      console.log(" Mapped Image Category:", imageCategory);
 
     } else {
-      console.log("🖼️ No image uploaded");
+      console.log(" No image uploaded");
     }
 
 
@@ -227,7 +256,7 @@ exports.createIssue = async (req, res) => {
     const newIssue = new Issue({
       title: req.body.title,
       description: req.body.description,
-      severity: aiSeverity, // ✅ AI decides
+      severity: aiSeverity, //  AI decides
       category: finalCategory,
       image_url,
       location
@@ -267,17 +296,19 @@ exports.getIssues = async (req, res) => {
   }
 };
 
-// ✅ UPSVOTE (IMPORTANT)
+
 exports.upvoteIssue = async (req, res) => {
   try {
-    const issue = await Issue.findById(req.params.id);
+    const issue = await Issue.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { upvotes: 1 } },  // ← atomic increment, safer than += 1
+      // { new: true }
+      { returnDocument: 'after' }
+    );
 
     if (!issue) {
       return res.status(404).json({ message: "Issue not found" });
     }
-
-    issue.upvotes += 1;
-    await issue.save();
 
     res.status(200).json(issue);
 
@@ -286,7 +317,6 @@ exports.upvoteIssue = async (req, res) => {
   }
 };
 
-// ✅ STATUS UPDATE (IMPORTANT)
 exports.updateStatus = async (req, res) => {
   try {
     const issue = await Issue.findById(req.params.id);

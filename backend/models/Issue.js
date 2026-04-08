@@ -17,12 +17,19 @@ const IssueSchema = new mongoose.Schema({
 
   category: {
     type: String,
+    // enum: [
+    //   "Road issues",
+    //   "Sanitation problems",
+    //   "Electricity issues",
+    //   "Water supply problems",
+    //   "Environmental issues"
+    // ],
     enum: [
-      "Road issues",
-      "Sanitation problems",
-      "Electricity issues",
-      "Water supply problems",
-      "Environmental issues"
+      "Road",
+      "Sanitation",
+      "Electricity",
+      "Water",
+      "Environment"
     ],
     required: true
   },
@@ -33,12 +40,7 @@ const IssueSchema = new mongoose.Schema({
     default: "Low"
   },
 
-  // location: {
-  //   latitude: Number,
-  //   longitude: Number
-  // },
 
-  // new lines for area data
   location: {
     lat: Number,
     lng: Number,

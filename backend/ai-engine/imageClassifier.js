@@ -2,18 +2,32 @@ const { pipeline } = require("@xenova/transformers");
 
 let imageClassifier;
 
+// const loadImageModel = async () => {
+//   console.log("🚀 Loading Image AI (online lightweight)...");
+
+//   imageClassifier = await pipeline(
+//     "image-classification",
+    // "Xenova/mobilevit-x-small",
+//     {
+//       dtype: "q8" // 🔥 very important (fast + small)
+//     }
+//   );
+
+//   console.log("✅ Image model loaded");
+// };
+
 const loadImageModel = async () => {
-  console.log("🚀 Loading Image AI (online lightweight)...");
+  console.log(" Loading Image AI (better model)...");
 
   imageClassifier = await pipeline(
     "image-classification",
-    "Xenova/mobilevit-x-small",
+    "Xenova/convnext-tiny-224", 
     {
-      dtype: "q8" // 🔥 very important (fast + small)
+      dtype: "q8"
     }
   );
 
-  console.log("✅ Image model loaded");
+  console.log(" Image model loaded");
 };
 
 const classifyImage = async (imagePath) => {
@@ -22,18 +36,18 @@ const classifyImage = async (imagePath) => {
       await loadImageModel();
     }
 
-    console.time("🖼️ Image AI Time");
+    console.time(" Image AI Time");
 
     const result = await imageClassifier(imagePath);
 
-    console.timeEnd("🖼️ Image AI Time");
+    console.timeEnd(" Image AI Time");
 
-    console.log("🧠 Image Result:", result);
+    console.log(" Image Result:", result);
 
     return result[0].label;
 
   } catch (err) {
-    console.log("❌ Image AI failed:", err.message);
+    console.log(" Image AI failed:", err.message);
     return null;
   }
 };
