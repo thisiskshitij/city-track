@@ -1,6 +1,6 @@
 ---
 
-#  CityTrack – Smart City Issue Reporting & Classification System
+#  CityTrack
 
 CityTrack is an AI-powered web application that enables citizens to report civic issues and allows municipal authorities to manage, classify, and resolve them efficiently. The system leverages machine learning and geospatial analysis to automate issue categorization, detect duplicates, and highlight problem hotspots.
 
