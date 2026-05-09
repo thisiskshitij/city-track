@@ -1,0 +1,24 @@
+## ML Service Setup
+
+### Requirements
+- Python 3.11
+- CUDA 12.1 (optional, for GPU)
+
+### Install
+```bash
+py -3.11 -m venv venv_ml
+venv_ml\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Run
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+### Models
+Download fine-tuned checkpoints and place them here:
+- `distilbert_finetuned/` — DistilBERT text model
+- `mobilenet_finetuned.pth` — MobileNetV3 image model
+
+Without checkpoints the service runs with random weights (predictions will be unreliable).
