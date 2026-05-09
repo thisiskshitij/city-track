@@ -1,191 +1,409 @@
+  const axios = require("axios");
+  const FormData = require("form-data");
+  const fs = require("fs");
 
-const Issue = require("../models/Issue");
-const classifyWithAI = require("../ai-engine/zeroShotClassifier");
-const classifyImage = require("../ai-engine/imageClassifier");
-const stringSimilarity = require("string-similarity");
+  const Issue = require("../models/Issue");
+  // const classifyWithAI = require("../ai-engine/zeroShotClassifier");
+  // const classifyImage = require("../ai-engine/imageClassifier");
+  const stringSimilarity = require("string-similarity");
 
-const checkDuplicate = async (description, areaName) => {
+  const checkDuplicate = async (description, areaName) => {
 
-  const issues = await Issue.find();
+    const issues = await Issue.find();
 
-  for (let issue of issues) {
+    for (let issue of issues) {
 
-    //  SAME AREA CHECK
-    if (issue.location?.areaName !== areaName) {
-      continue; // skip different areas
+      //  SAME AREA CHECK
+      if (issue.location?.areaName !== areaName) {
+        continue; // skip different areas
+      }
+
+      //  SIMPLE TEXT MATCH (you can improve later)
+      const existingDesc = issue.description.toLowerCase();
+      const newDesc = description.toLowerCase();
+
+      if (existingDesc.includes(newDesc) || newDesc.includes(existingDesc)) {
+        return issue;
+      }
     }
 
-    //  SIMPLE TEXT MATCH (you can improve later)
-    const existingDesc = issue.description.toLowerCase();
-    const newDesc = description.toLowerCase();
-
-    if (existingDesc.includes(newDesc) || newDesc.includes(existingDesc)) {
-      return issue;
-    }
-  }
-
-  return null;
-};
-
-//  Map Image Labels → Categories
-
-// const mapImageToCategory = (label) => {
-//   label = label.toLowerCase();
-
-//   if (label.includes("road") || label.includes("street") || label.includes("hole")) {
-//     return "Road issues";
-//   }
-
-//   if (label.includes("garbage") || label.includes("trash")) {
-//     return "Sanitation problems";
-//   }
-
-//   if (label.includes("light")) {
-//     return "Electricity issues";
-//   }
-
-//   if (label.includes("water")) {
-//     return "Water supply problems";
-//   }
-
-//   return "Environmental issues";
-// };
-
-const mapImageToCategory = (label) => {
-  label = label.toLowerCase();
-
-  if (label.includes("road") || label.includes("street") || label.includes("hole")) {
-    return "Road";
-  }
-
-  if (label.includes("garbage") || label.includes("trash")) {
-    return "Sanitation";
-  }
-
-  if (label.includes("light")) {
-    return "Electricity";
-  }
-
-  if (label.includes("water")) {
-    return "Water";
-  }
-
-  return "Environment";
-};
-
-//new line for area data
-
-
-// // CATEGORY LIST
-// const categories = [
-//   "Road issues",
-//   "Sanitation problems",
-//   "Electricity issues",
-//   "Water supply problems",
-//   "Environmental issues"
-// ];
-//  CATEGORY LIST
-const categories = [
-  "Road",
-  "Sanitation",
-  "Electricity",
-  "Water",
-  "Environment"
-];
-
-const getScoreVector = (predictedCategory) => {
-  const scores = {
-    "Road": 0,
-    "Sanitation": 0,
-    "Electricity": 0,
-    "Water": 0,
-    "Environment": 0
+    return null;
   };
 
-  if (scores.hasOwnProperty(predictedCategory)) {
-    scores[predictedCategory] = 1;
-  }
+  //  Map Image Labels → Categories
 
-  return scores;
-};
+  // const mapImageToCategory = (label) => {
+  //   label = label.toLowerCase();
 
-//  Combine Text + Image
-const combinePredictions = (textCategory, imageCategory) => {
-  const textScores = getScoreVector(textCategory);
-  const imageScores = getScoreVector(imageCategory);
+  //   if (label.includes("road") || label.includes("street") || label.includes("hole")) {
+  //     return "Road issues";
+  //   }
 
-  const finalScores = {};
+  //   if (label.includes("garbage") || label.includes("trash")) {
+  //     return "Sanitation problems";
+  //   }
 
-  for (let key in textScores) {
-    finalScores[key] =
-      0.6 * textScores[key] +
-      0.4 * imageScores[key];
-  }
+  //   if (label.includes("light")) {
+  //     return "Electricity issues";
+  //   }
 
-  let finalCategory = null;
-  let maxScore = -1;
+  //   if (label.includes("water")) {
+  //     return "Water supply problems";
+  //   }
 
-  for (let key in finalScores) {
-    if (finalScores[key] > maxScore) {
-      maxScore = finalScores[key];
-      finalCategory = key;
+  //   return "Environmental issues";
+  // };
+
+  const mapImageToCategory = (label) => {
+    label = label.toLowerCase();
+
+    if (label.includes("road") || label.includes("street") || label.includes("hole")) {
+      return "Road";
     }
-  }
 
-  console.log(" Combined Scores:", finalScores);
-  console.log(" Final AI Decision:", finalCategory);
+    if (label.includes("garbage") || label.includes("trash")) {
+      return "Sanitation";
+    }
 
-  return finalCategory;
-};
+    if (label.includes("light")) {
+      return "Electricity";
+    }
 
-//new line
+    if (label.includes("water")) {
+      return "Water";
+    }
 
-const predictSeverity = (description, imageLabel) => {
+    return "Environment";
+  };
+
+  //new line for area data
+
+
+  // // CATEGORY LIST
+  // const categories = [
+  //   "Road issues",
+  //   "Sanitation problems",
+  //   "Electricity issues",
+  //   "Water supply problems",
+  //   "Environmental issues"
+  // ];
+  //  CATEGORY LIST
+  const categories = [
+    "Road",
+    "Sanitation",
+    "Electricity",
+    "Water",
+    "Environment"
+  ];
+
+  const getScoreVector = (predictedCategory) => {
+    const scores = {
+      "Road": 0,
+      "Sanitation": 0,
+      "Electricity": 0,
+      "Water": 0,
+      "Environment": 0
+    };
+
+    if (scores.hasOwnProperty(predictedCategory)) {
+      scores[predictedCategory] = 1;
+    }
+
+    return scores;
+  };
+
+
+
+  //  Combine Text + Image
+  const combinePredictions = (textCategory, imageCategory) => {
+    const textScores = getScoreVector(textCategory);
+    const imageScores = getScoreVector(imageCategory);
+
+    const finalScores = {};
+
+    for (let key in textScores) {
+      finalScores[key] =
+        0.6 * textScores[key] +
+        0.4 * imageScores[key];
+    }
+
+    let finalCategory = null;
+    let maxScore = -1;
+
+    for (let key in finalScores) {
+      if (finalScores[key] > maxScore) {
+        maxScore = finalScores[key];
+        finalCategory = key;
+      }
+    }
+
+    console.log(" Combined Scores:", finalScores);
+    console.log(" Final AI Decision:", finalCategory);
+
+    return finalCategory;
+  };
+
+  //new line
+
+  // const predictSeverity = (description, imageLabel) => {
+  //   let score = 0;
+  //   console.log("Severity function called");
+  //   const text = description.toLowerCase();
+
+  //   //  TEXT SIGNALS
+  //   if (text.includes("huge") || text.includes("big") || text.includes("danger")) {
+  //     score += 0.4;
+  //   }
+
+  //   if (text.includes("accident") || text.includes("risk") || text.includes("blocked")) {
+  //     score += 0.3;
+  //   }
+
+  //   if (text.includes("water leaking") || text.includes("overflow")) {
+  //     score += 0.2;
+  //   }
+
+  //   // IMAGE SIGNALS
+  //   if (imageLabel) {
+  //     const label = imageLabel.toLowerCase();
+
+  //     if (label.includes("garbage") || label.includes("trash")) {
+  //       score += 0.2;
+  //     }
+
+  //     if (label.includes("hole") || label.includes("damage")) {
+  //       score += 0.4;
+  //     }
+  //   }
+
+  //   //  NORMALIZE (max = 1)
+  //   if (score > 1) score = 1;
+
+  //   console.log(" Severity Score:", score);
+
+  //   //  MAP TO LEVEL
+  //   if (score < 0.34) return "Low";
+  //   if (score < 0.67) return "Medium";
+  //   return "High";
+  // };
+
+const predictSeverity = (description, category) => {
   let score = 0;
-  console.log("Severity function called");
   const text = description.toLowerCase();
 
-  //  TEXT SIGNALS
-  if (text.includes("huge") || text.includes("big") || text.includes("danger")) {
+  // high urgency keywords
+  if (/(danger|accident|injur|block|collapse|flood|overflow|fire|emergency)/.test(text)) {
     score += 0.4;
   }
 
-  if (text.includes("accident") || text.includes("risk") || text.includes("blocked")) {
+  // medium urgency keywords
+  if (/(broken|damage|leak|burst|crack|pothole|overflow|missing|exposed)/.test(text)) {
     score += 0.3;
   }
 
-  if (text.includes("water leaking") || text.includes("overflow")) {
+  // size/scale keywords
+  if (/(huge|large|big|major|severe|multiple|entire|complete)/.test(text)) {
     score += 0.2;
   }
 
-  // IMAGE SIGNALS
-  if (imageLabel) {
-    const label = imageLabel.toLowerCase();
-
-    if (label.includes("garbage") || label.includes("trash")) {
-      score += 0.2;
-    }
-
-    if (label.includes("hole") || label.includes("damage")) {
-      score += 0.4;
-    }
+  // minor keywords
+  if (/(small|minor|slight|little)/.test(text)) {
+    score -= 0.2;
   }
 
-  //  NORMALIZE (max = 1)
-  if (score > 1) score = 1;
+  // category-based risk boost
+  const highRiskCategories = ["Electricity", "Water"];
+  const mediumRiskCategories = ["Road", "Sanitation"];
 
-  console.log("🔥 Severity Score:", score);
+  if (highRiskCategories.includes(category)) score += 0.2;
+  if (mediumRiskCategories.includes(category)) score += 0.1;
 
-  //  MAP TO LEVEL
+  // normalize
+  score = Math.max(0, Math.min(1, score));
+
+  console.log(`[severity] text: "${description.slice(0, 50)}" | category: ${category} | score: ${score}`);
+
   if (score < 0.34) return "Low";
   if (score < 0.67) return "Medium";
   return "High";
 };
 
 
-exports.createIssue = async (req, res) => {
+  // exports.createIssue = async (req, res) => {
+
+  // let prediction = {
+  //   category: "Environment",
+  //   confidence: 0,
+  //   text_probs: {},
+  //   image_probs: {},
+  //   scores: {}
+  // };
+
+  // try {
+  //   const formData = new FormData();
+
+  //   formData.append("description", req.body.description || "");
+
+  //   if (req.file && req.file.path) {
+  //     formData.append(
+  //       "image",
+  //       fs.createReadStream(req.file.path)
+  //     );
+  //   }
+
+  //   const mlResponse = await axios.post(
+  //     "http://127.0.0.1:8000/predict",
+  //     formData,
+  //     {
+  //       headers: formData.getHeaders(),
+  //       timeout: 5000   // VERY IMPORTANT
+  //     }
+  //   );
+
+  //   prediction = mlResponse.data;
+
+  // } catch (err) {
+  //   console.log(" ML ERROR (ignored):", err.message);
+  // }
+
+  //   try {
+  //     const location = {
+  //       lat: req.body.lat,
+  //       lng: req.body.lng,
+  //       areaName: req.body.areaName || "Unknown Area"
+  //     };
+  //     console.log("createIssue hit");
+
+  //     // const duplicate = await checkDuplicate(req.body.description);
+  //     const duplicate = await checkDuplicate(
+  //       req.body.description,
+  //       req.body.areaName //  NEW
+  //     );
+
+  //     if (duplicate) {
+  //       return res.status(200).json({
+  //         message: "Similar issue already exists",
+  //         existingIssue: duplicate
+  //       });
+  //     }
+
+  //     const image_url = req.file
+  //       ? `http://localhost:5000/uploads/${req.file.filename}`
+  //       : null;
+
+  //     //  TEXT AI
+  //     // const textCategory = await classifyWithAI(req.body.description);
+  //     // console.log("Text AI:", textCategory);
+
+  //     // //  IMAGE AI
+
+  //     // let imagePrediction = null;
+  //     // let imageCategory = null;
+
+  //     // if (req.file) {
+  //     //   console.log(" Image received:", req.file.filename);
+
+  //     //   imagePrediction = await classifyImage(`uploads/${req.file.filename}`);
+
+  //     //   console.log(" Raw Image Prediction:", imagePrediction);
+
+  //     //   imageCategory = mapImageToCategory(imagePrediction);
+
+  //     //   console.log(" Mapped Image Category:", imageCategory);
+
+  //     // } else {
+  //     //   console.log(" No image uploaded");
+  //     // }
 
 
+  //     // let finalCategory = textCategory;
+
+  //     // if (imageCategory) {
+  //     //   finalCategory = combinePredictions(textCategory, imageCategory);
+  //     // }
+  //     // console.log("Final Category:", finalCategory);
+
+
+  //     const formData = new FormData();
+
+  //     formData.append("description", req.body.description);
+
+  //     if (req.file) {
+  //       formData.append(
+  //         "image",
+  //         fs.createReadStream(req.file.path)
+  //       );
+  //     }
+
+  //     const mlResponse = await axios.post(
+  //       "http://127.0.0.1:8000/predict",
+  //       formData,
+  //       {
+  //         headers: formData.getHeaders()
+  //       }
+  //     );
+
+  //     const prediction = mlResponse.data;
+
+
+  //     const aiSeverity = predictSeverity(
+  //       req.body.description,
+  //       imagePrediction
+  //     );
+
+  //     console.log(" Final Severity:", aiSeverity);
+
+  //     const newIssue = new Issue({
+  //       title: req.body.title,
+  //       description: req.body.description,
+  //       severity: aiSeverity, //  AI decides
+  //       category: prediction.category,
+  //       mlConfidence: prediction.confidence,
+  //       textConfidence: prediction.text_probs,
+  //       imageConfidence: prediction.image_probs,
+  //       mlScores: prediction.scores,
+  //       image_url,
+  //       location
+  //     });
+
+  //     const savedIssue = await newIssue.save();
+
+  //     res.status(201).json(savedIssue);
+
+  //   } catch (error) {
+  //     res.status(500).json({ message: error.message });
+  //   }
+  // };
+
+  exports.createIssue = async (req, res) => {
+
+  let prediction = {
+    category: "Environment",
+    confidence: 0,
+    text_probs: {},
+    image_probs: {},
+    scores: {}
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("description", req.body.description || "");
+
+    if (req.file && req.file.path) {
+      formData.append("image", fs.createReadStream(req.file.path));
+    }
+
+    const mlResponse = await axios.post(
+      "http://127.0.0.1:8000/predict",
+      formData,
+      { headers: formData.getHeaders(), timeout: 10000 }
+    );
+
+    prediction = mlResponse.data;
+
+  } catch (err) {
+    console.warn("ML service unavailable, using defaults:", err.message);
+  }
 
   try {
     const location = {
@@ -193,14 +411,8 @@ exports.createIssue = async (req, res) => {
       lng: req.body.lng,
       areaName: req.body.areaName || "Unknown Area"
     };
-    console.log("createIssue hit");
 
-    // const duplicate = await checkDuplicate(req.body.description);
-    const duplicate = await checkDuplicate(
-      req.body.description,
-      req.body.areaName //  NEW
-    );
-
+    const duplicate = await checkDuplicate(req.body.description, req.body.areaName);
     if (duplicate) {
       return res.status(200).json({
         message: "Similar issue already exists",
@@ -212,112 +424,123 @@ exports.createIssue = async (req, res) => {
       ? `http://localhost:5000/uploads/${req.file.filename}`
       : null;
 
-    //  TEXT AI
-    const textCategory = await classifyWithAI(req.body.description);
-    console.log("Text AI:", textCategory);
-
-    //  IMAGE AI
-
-    let imagePrediction = null;
-    let imageCategory = null;
-
-    if (req.file) {
-      console.log(" Image received:", req.file.filename);
-
-      imagePrediction = await classifyImage(`uploads/${req.file.filename}`);
-
-      console.log(" Raw Image Prediction:", imagePrediction);
-
-      imageCategory = mapImageToCategory(imagePrediction);
-
-      console.log(" Mapped Image Category:", imageCategory);
-
-    } else {
-      console.log(" No image uploaded");
-    }
-
-
-    let finalCategory = textCategory;
-
-    if (imageCategory) {
-      finalCategory = combinePredictions(textCategory, imageCategory);
-    }
-    console.log("Final Category:", finalCategory);
-
-
-
-    const aiSeverity = predictSeverity(
-      req.body.description,
-      imagePrediction
-    );
-
-    console.log("🎯 Final Severity:", aiSeverity);
+    // severity now uses the ML category instead of imagePrediction
+    const aiSeverity = predictSeverity(req.body.description, prediction.category);
+    console.log("Final Severity:", aiSeverity);
 
     const newIssue = new Issue({
       title: req.body.title,
       description: req.body.description,
-      severity: aiSeverity, //  AI decides
-      category: finalCategory,
+      severity: aiSeverity,
+      category: prediction.category,
+      mlConfidence: prediction.confidence,
+      textConfidence: prediction.text_probs,
+      imageConfidence: prediction.image_probs,
+      mlScores: prediction.scores,
       image_url,
       location
     });
 
     const savedIssue = await newIssue.save();
-
     res.status(201).json(savedIssue);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-// GET ALL
-exports.getIssues = async (req, res) => {
-  try {
+  // GET ALL
+  exports.getIssues = async (req, res) => {
+    try {
 
-    const search = req.query.search;
+      const search = req.query.search;
 
-    let query = {};
+      let query = {};
 
-    if (search) {
-      query = {
-        $or: [
-          { title: { $regex: search, $options: "i" } },
-          { description: { $regex: search, $options: "i" } }
-        ]
-      };
+      if (search) {
+        query = {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } }
+          ]
+        };
+      }
+
+      const issues = await Issue.find(query).sort({ createdAt: -1 });
+
+      res.status(200).json(issues);
+
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
-
-    const issues = await Issue.find(query).sort({ createdAt: -1 });
-
-    res.status(200).json(issues);
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+  };
 
 
-exports.upvoteIssue = async (req, res) => {
-  try {
-    const issue = await Issue.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { upvotes: 1 } },  // ← atomic increment, safer than += 1
-      // { new: true }
-      { returnDocument: 'after' }
-    );
+  exports.upvoteIssue = async (req, res) => {
+    try {
+      const issue = await Issue.findByIdAndUpdate(
+        req.params.id,
+        { $inc: { upvotes: 1 } },  // ← atomic increment, safer than += 1
+        // { new: true }
+        { returnDocument: 'after' }
+      );
 
-    if (!issue) {
-      return res.status(404).json({ message: "Issue not found" });
+      if (!issue) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
+
+      res.status(200).json(issue);
+
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
+  };
 
-    res.status(200).json(issue);
+  exports.updateStatus = async (req, res) => {
+    try {
+      const issue = await Issue.findById(req.params.id);
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+      if (!issue) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
 
-exports.updateStatus = async (req, res) => {
+      issue.status = req.body.status;
+      await issue.save();
+
+      res.status(200).json(issue);
+
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+
+  exports.getIssueById = async (req, res) => {
+    try {
+      const issue = await Issue.findById(req.params.id);
+
+      if (!issue) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
+
+      res.status(200).json(issue);
+
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+
+
+
+  exports.deleteIssue = async (req, res) => {
+    try {
+      await Issue.findByIdAndDelete(req.params.id);
+      res.json({ message: "Issue deleted" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+
+  // POST feedback on an issue (admin only)
+exports.addFeedback = async (req, res) => {
   try {
     const issue = await Issue.findById(req.params.id);
 
@@ -325,17 +548,27 @@ exports.updateStatus = async (req, res) => {
       return res.status(404).json({ message: "Issue not found" });
     }
 
-    issue.status = req.body.status;
+    const feedbackEntry = {
+      text: req.body.text,
+      postedBy: req.user.userId,    // from verifyToken middleware
+      postedAt: new Date()
+    };
+
+    issue.feedback.push(feedbackEntry);
     await issue.save();
 
-    res.status(200).json(issue);
+    // populate so frontend gets admin name immediately
+    await issue.populate("feedback.postedBy", "name email");
+
+    res.status(201).json(issue.feedback);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-exports.getIssueById = async (req, res) => {
+// DELETE a feedback entry (admin only)
+exports.deleteFeedback = async (req, res) => {
   try {
     const issue = await Issue.findById(req.params.id);
 
@@ -343,20 +576,14 @@ exports.getIssueById = async (req, res) => {
       return res.status(404).json({ message: "Issue not found" });
     }
 
-    res.status(200).json(issue);
+    issue.feedback = issue.feedback.filter(
+      f => f._id.toString() !== req.params.feedbackId
+    );
+
+    await issue.save();
+    res.status(200).json({ message: "Feedback deleted" });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
-};
-
-
-
-exports.deleteIssue = async (req, res) => {
-  try {
-    await Issue.findByIdAndDelete(req.params.id);
-    res.json({ message: "Issue deleted" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
   }
 };

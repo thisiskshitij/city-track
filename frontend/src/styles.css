@@ -851,6 +851,93 @@ html, body, #root {
 
 .ct-submit:active { transform: translateY(0); }
 
+/* ── Feedback Panel ── */
+.ct-feedback-panel {
+  overflow: hidden;
+  border-top: 1px solid var(--border, rgba(0,0,0,0.08));
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.ct-feedback-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.ct-feedback-empty {
+  font-size: 0.85rem;
+  opacity: 0.45;
+  margin-bottom: 8px;
+}
+
+.ct-feedback-item {
+  background: rgba(74,144,196,0.07);
+  border-left: 3px solid #4a90c4;
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.ct-feedback-text {
+  font-size: 0.9rem;
+  margin: 0 0 4px;
+}
+
+.ct-feedback-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  opacity: 0.55;
+}
+
+.ct-feedback-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #e85d4a;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.ct-feedback-delete:hover { opacity: 1; }
+
+.ct-feedback-form {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ct-feedback-input {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.12);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  resize: none;
+  background: var(--input-bg, #fff);
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.ct-dark .ct-feedback-input {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.ct-feedback-submit {
+  align-self: flex-end;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+}
+
 /* ─── SCROLLBAR ──────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

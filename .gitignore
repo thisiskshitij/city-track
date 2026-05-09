@@ -85,3 +85,10 @@ docker-compose.override.yml
 *.tgz
 *.zip
 
+
+__pycache__/
+data/
+distilbert_finetuned/
+venv_ml
+models/
+uploads/

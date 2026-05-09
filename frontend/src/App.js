@@ -68,6 +68,11 @@ function App() {
   const [darkMode,  setDarkMode]  = useState(false);
   const [showForm,  setShowForm]  = useState(false);
   const [fileName,  setFileName]  = useState("");
+  
+  //new
+  const [expandedIssue, setExpandedIssue] = useState(null);  // tracks which card is expanded
+const [feedbackText,  setFeedbackText]  = useState("");
+const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   /* role is derived from localStorage; re-read whenever isLoggedIn changes */
   const role = localStorage.getItem("role");
@@ -192,6 +197,47 @@ const handleUpvote = (id) => {
       .then(() => fetchIssues())
       .catch(err => console.log(err));
   };
+
+
+const handleAddFeedback = async (issueId) => {
+  if (!feedbackText.trim()) return;
+  setFeedbackLoading(true);
+  try {
+    const res = await axios.post(
+      `http://localhost:5000/issues/${issueId}/feedback`,
+      { text: feedbackText },
+      { headers: authHeaders() }
+    );
+    // update feedback in local state without refetching all issues
+    setIssues(prev =>
+      prev.map(i => i._id === issueId ? { ...i, feedback: res.data } : i)
+    );
+    setFeedbackText("");
+  } catch (err) {
+    alert(err.response?.data?.message || "Failed to post feedback");
+  } finally {
+    setFeedbackLoading(false);
+  }
+};
+
+const handleDeleteFeedback = async (issueId, feedbackId) => {
+  try {
+    await axios.delete(
+      `http://localhost:5000/issues/${issueId}/feedback/${feedbackId}`,
+      { headers: authHeaders() }
+    );
+    setIssues(prev =>
+      prev.map(i =>
+        i._id === issueId
+          ? { ...i, feedback: i.feedback.filter(f => f._id !== feedbackId) }
+          : i
+      )
+    );
+  } catch (err) {
+    console.error("Delete feedback failed:", err.message);
+  }
+};
+
 
   const filteredIssues = issues.filter(issue => !filter || issue.category === filter);
 
@@ -388,87 +434,156 @@ const handleUpvote = (id) => {
           <AnimatePresence>
             {filteredIssues.map((issue, i) => (
               <motion.div
-                key={issue._id}
-                className="ct-card"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: i * 0.04, duration: 0.3 }}
-              >
-                <div className="ct-card-header">
-                  <span
-                    className="ct-cat-badge"
-                    style={{
-                      background: categoryColors[issue.category] + "22",
-                      color: categoryColors[issue.category],
-                    }}
+  key={issue._id}
+  className="ct-card"
+  initial={{ opacity: 0, y: 24 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, scale: 0.95 }}
+  transition={{ delay: i * 0.04, duration: 0.3 }}
+>
+  {/* ── existing card header ── */}
+  <div className="ct-card-header">
+    <span
+      className="ct-cat-badge"
+      style={{
+        background: categoryColors[issue.category] + "22",
+        color: categoryColors[issue.category],
+      }}
+    >
+      {categoryIcons[issue.category]} {issue.category}
+    </span>
+    <span
+      className="ct-sev-badge"
+      style={{
+        background: severityConfig[issue.severity]?.bg,
+        color: severityConfig[issue.severity]?.color,
+      }}
+    >
+      {issue.severity}
+    </span>
+  </div>
+
+  <h3 className="ct-card-title">{issue.title}</h3>
+  <p className="ct-card-desc">{issue.description}</p>
+
+  {issue.location?.areaName && (
+    <span className="ct-area-tag">
+      <FaMapMarkerAlt /> {issue.location.areaName}
+    </span>
+  )}
+
+  {issue.image_url && (
+    <div className="ct-card-img-wrap">
+      <img src={issue.image_url} alt="issue" className="ct-card-img" />
+    </div>
+  )}
+
+  <div className="ct-card-footer">
+    <span className="ct-status" style={{ color: statusConfig[issue.status]?.color }}>
+      <span className="ct-status-dot" style={{ background: statusConfig[issue.status]?.color }} />
+      {issue.status}
+    </span>
+
+    <div className="ct-actions">
+      <button className="ct-upvote" onClick={() => handleUpvote(issue._id)}>
+        <FaThumbsUp /> {issue.upvotes}
+      </button>
+
+      {/* toggle feedback panel */}
+      <button
+        className="ct-action-btn"
+        onClick={() => {
+          setExpandedIssue(expandedIssue === issue._id ? null : issue._id);
+          setFeedbackText("");
+        }}
+      >
+        💬 {issue.feedback?.length || 0}
+      </button>
+
+      {role === "admin" && (
+        <>
+          <button
+            className="ct-action-btn"
+            onClick={() => updateStatus(issue._id, "In Progress")}
+          >
+            In Progress
+          </button>
+          <button
+            className="ct-action-btn ct-resolve"
+            onClick={() => updateStatus(issue._id, "Resolved")}
+          >
+            Resolve
+          </button>
+          <button
+            className="ct-action-btn ct-delete"
+            onClick={() => deleteIssue(issue._id)}
+          >
+            <FaTrash />
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+
+  {/* ── FEEDBACK PANEL ── */}
+  <AnimatePresence>
+    {expandedIssue === issue._id && (
+      <motion.div
+        className="ct-feedback-panel"
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: "auto" }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <p className="ct-feedback-heading">Official Updates</p>
+
+        {/* feedback list */}
+        {(!issue.feedback || issue.feedback.length === 0) ? (
+          <p className="ct-feedback-empty">No updates yet.</p>
+        ) : (
+          issue.feedback.map(f => (
+            <div key={f._id} className="ct-feedback-item">
+              <p className="ct-feedback-text">{f.text}</p>
+              <div className="ct-feedback-meta">
+                <span>
+                  🛡️ {f.postedBy?.name || "Admin"} · {new Date(f.postedAt).toLocaleDateString()}
+                </span>
+                {role === "admin" && (
+                  <button
+                    className="ct-feedback-delete"
+                    onClick={() => handleDeleteFeedback(issue._id, f._id)}
                   >
-                    {categoryIcons[issue.category]} {issue.category}
-                  </span>
-                  <span
-                    className="ct-sev-badge"
-                    style={{
-                      background: severityConfig[issue.severity]?.bg,
-                      color: severityConfig[issue.severity]?.color,
-                    }}
-                  >
-                    {issue.severity}
-                  </span>
-                </div>
-
-                <h3 className="ct-card-title">{issue.title}</h3>
-                <p className="ct-card-desc">{issue.description}</p>
-
-                {issue.location?.areaName && (
-                  <span className="ct-area-tag">
-                    <FaMapMarkerAlt /> {issue.location.areaName}
-                  </span>
+                    <FaTimes />
+                  </button>
                 )}
+              </div>
+            </div>
+          ))
+        )}
 
-                {issue.image_url && (
-                  <div className="ct-card-img-wrap">
-                    <img src={issue.image_url} alt="issue" className="ct-card-img" />
-                  </div>
-                )}
-
-                <div className="ct-card-footer">
-                  <span className="ct-status" style={{ color: statusConfig[issue.status]?.color }}>
-                    <span className="ct-status-dot" style={{ background: statusConfig[issue.status]?.color }} />
-                    {issue.status}
-                  </span>
-
-                  <div className="ct-actions">
-                    {/* upvote — all users */}
-                    <button className="ct-upvote" onClick={() => handleUpvote(issue._id)}>
-                      <FaThumbsUp /> {issue.upvotes}
-                    </button>
-
-                    {/* status + delete — admin only */}
-                    {role === "admin" && (
-                      <>
-                        <button
-                          className="ct-action-btn"
-                          onClick={() => updateStatus(issue._id, "In Progress")}
-                        >
-                          In Progress
-                        </button>
-                        <button
-                          className="ct-action-btn ct-resolve"
-                          onClick={() => updateStatus(issue._id, "Resolved")}
-                        >
-                          Resolve
-                        </button>
-                        <button
-                          className="ct-action-btn ct-delete"
-                          onClick={() => deleteIssue(issue._id)}
-                        >
-                          <FaTrash />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
+        {/* admin post input */}
+        {role === "admin" && (
+          <div className="ct-feedback-form">
+            <textarea
+              rows={2}
+              placeholder="Write an official update..."
+              value={feedbackText}
+              onChange={e => setFeedbackText(e.target.value)}
+              className="ct-feedback-input"
+            />
+            <button
+              className="ct-submit ct-feedback-submit"
+              onClick={() => handleAddFeedback(issue._id)}
+              disabled={feedbackLoading || !feedbackText.trim()}
+            >
+              {feedbackLoading ? "Posting..." : "Post Update"}
+            </button>
+          </div>
+        )}
+      </motion.div>
+    )}
+  </AnimatePresence>
+</motion.div>
             ))}
           </AnimatePresence>
 

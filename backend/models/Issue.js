@@ -61,8 +61,26 @@ const IssueSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
 
+  //new
+feedback: [
+  {
+    text: {
+      type: String,
+      required: true
+    },
+    postedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+    postedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }
+]
 });
 
 module.exports = mongoose.model("Issue", IssueSchema);

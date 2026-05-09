@@ -8,7 +8,9 @@ const {
   getIssueById,
   deleteIssue,
   upvoteIssue,
-  updateStatus
+  updateStatus,
+  addFeedback,       // ← add
+  deleteFeedback     // ← add
 } = require("../controllers/issueController");
 
 router.get("/", getIssues);
@@ -23,4 +25,8 @@ router.patch("/:id/status", verifyToken, isAdmin, updateStatus);
 
 router.delete("/:id", verifyToken, isAdmin, deleteIssue);
 
+router.post("/:id/feedback", verifyToken, isAdmin, addFeedback); //add
+router.delete("/:id/feedback/:feedbackId", verifyToken, isAdmin, deleteFeedback); // add
+
 module.exports = router;
+
